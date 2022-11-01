@@ -122,7 +122,7 @@ module OpenHAB
         #
         # @!method name(value)
         #
-        # Set the fule's name.
+        # Set the rule's name.
         #
         # @param [String] value
         # @return [void]
@@ -507,15 +507,27 @@ module OpenHAB
         #
         # Create a cron trigger
         #
+        # A cron trigger can be created using an {https://www.openhab.org/docs/configuration/rules-dsl.html#time-based-triggers OpenHAB style cron expression}
+        # or by specifying each field as named arguments.
+        #
         # @param [String] expression OpenHAB style cron expression
         # @param [Object] attach object to be attached to the trigger
-        # @param [Hash] fields cron expression elements (second, minute, hour, dom, month, dow, year)
+        # @param [Hash] fields cron expression elements (second, minute, hour, dom, month, dow, year).
+        #   Omitted fields will default to `*` or `?`
         # @return [void]
         #
-        # @example
+        # @example Using a cron expression
         #   rule "cron expression" do
         #     cron "* * * * * * ?"
         #     run { Light.on }
+        #   end
+        #
+        # @example Using cron field names
+        #   # Run every 3 minutes on Monday to Friday
+        #   # equivalent to the cron expression "0 */3 * ? * MON-FRI *"
+        #   rule "Using cron fields" do
+        #     cron second: 0, minute: "*/3", dow: "MON-FRI"
+        #     run { logger.info "Cron rule executed" }
         #   end
         #
         def cron(expression = nil, attach: nil, **fields)
