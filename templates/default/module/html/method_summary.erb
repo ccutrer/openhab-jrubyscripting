@@ -1,5 +1,6 @@
 <% if method_listing.size > 0 %>
   <% groups(method_listing) do |list, group| %>
+    <a name="<%= group.to_s %>-group">
     <h2>
       <%= group.to_s %>
       <small><a href="#" class="summary_toggle">collapse</a></small>
