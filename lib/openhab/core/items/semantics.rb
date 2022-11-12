@@ -335,6 +335,10 @@ module Enumerable
 
   # Returns a new array of items that are a semantics equipment (optionally of the given type)
   #
+  # @note As `Equipments` are usually GroupItems, this method would therefore return an array of
+  #   GroupItems. In order to get the Points that belong to the Equipments, use {#members} before
+  #   calling {#points}.
+  #
   # @return [Array<GenericItem>]
   #
   # @example Get all TVs in a room
@@ -355,7 +359,10 @@ module Enumerable
   # @return [Array<GenericItem>]
   #
   # @example Get all the power switch items for every equipment in a room
-  #   lGreatRoom.equipments.points(Semantics::Switch)
+  #   lGreatRoom.equipments.members.points(Semantics::Switch)
+  #
+  # @see #members
+  #
   def points(*point_or_property_types)
     unless (0..2).cover?(point_or_property_types.length)
       raise ArgumentError, "wrong number of arguments (given #{point_or_property_types.length}, expected 0..2)"
