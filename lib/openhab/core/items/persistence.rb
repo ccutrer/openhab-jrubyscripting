@@ -248,7 +248,7 @@ module OpenHAB
         PERSISTENCE_METHODS.each do |method|
           define_method(method) do |timestamp, service = nil|
             service ||= persistence_service
-            result = PersistenceExtensions.public_send(
+            result = Core::Actions::PersistenceExtensions.public_send(
               method.to_s.delete_suffix("?"),
               self, timestamp.to_zoned_date_time,
               service&.to_s

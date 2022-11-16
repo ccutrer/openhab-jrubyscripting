@@ -74,7 +74,8 @@ module OpenHAB
       ThreadLocal.thread_local(openhab_rule_uid: id) do
         builder = Rules::Builder.new(binding || block.binding)
         builder.uid(id)
-        builder.instance_exec(&block)
+        builder.name(name)
+        builder.instance_exec(builder, &block)
         builder.guard = Rules::Guard.new(run_context: builder.caller, only_if: builder.only_if,
                                          not_if: builder.not_if)
 
@@ -85,7 +86,7 @@ module OpenHAB
         logger.trace { builder.inspect }
         builder.build(script)
       rescue Exception => e
-        builder.send(:logger).log_exception(e)
+        builder.send(:logger).log_exception(e, "Rule: #{builder.name}")
       end
     end
 
@@ -121,7 +122,7 @@ module OpenHAB
         builder.build(script)
       end
     rescue Exception => e
-      builder.send(:logger).log_exception(e)
+      builder.send(:logger).log_exception(e, "Rule: #{builder.name}")
     end
 
     # @!group Rule Support

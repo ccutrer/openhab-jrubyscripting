@@ -261,10 +261,11 @@ module OpenHAB
     # @param [Exception] exception A rescued error
     # @return [void]
     #
-    def log_exception(exception)
+    def log_exception(exception, name = nil)
       exception = clean_backtrace(exception)
       error do
-        "#{exception.message} (#{exception.class}):\n#{exception.backtrace&.join("\n")}"
+        name = "In #{name}\n" if name
+        "#{exception.message} (#{exception.class})\n#{name}#{exception.backtrace&.join("\n")}"
       end
     end
 

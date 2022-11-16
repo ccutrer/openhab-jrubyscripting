@@ -87,7 +87,7 @@ module OpenHAB
           DSL::ThreadLocal.thread_local(**@thread_locals) do
             @block.call(event, **kwargs)
           rescue Exception => e
-            @block.binding.eval("self").logger.log_exception(e)
+            @block.binding.eval("self").logger.log_exception(e, "Profile: #{@uid}")
           end
         end
       end
