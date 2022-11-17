@@ -15,6 +15,9 @@ module OpenHAB
       # framework in OpenHAB. It is represented as a decimal number with a unit.
       # You can construct a {QuantityType} object by using the pipe operator with any Numeric.
       #
+      # @see OpenHAB::DSL.unit unit: Implicit unit conversions
+      # @see OpenHAB::CoreExt::Ruby::QuantityTypeConversion Convert Numeric to QuantityType
+      #
       # @example QuantityTypes can perform math operations between them.
       #   (50 | "°F") + (-25 | "°F") # => 25.0 °F
       #   (100 | "°F") / (2 | "°F") # => 50
@@ -141,7 +144,7 @@ module OpenHAB
               return compare_to(QuantityType.new(other, unit))
             end
 
-            return nil # don"t allow comparison with numeric outside a unit block
+            return nil # don't allow comparison with numeric outside a unit block
           end
 
           return nil unless other.respond_to?(:coerce)
@@ -194,7 +197,7 @@ module OpenHAB
             #   elsif other.respond_to?(:coerce) && (lhs, rhs = other.coerce(to_d))
             #     lhs + rhs
             #   else
-            #     raise TypeError, "#{other.class} can"t be coerced into #{self.class}"
+            #     raise TypeError, "#{other.class} can't be coerced into #{self.class}"
             #   end
             # end
             <<~RUBY, __FILE__, __LINE__ + 1
@@ -238,7 +241,7 @@ module OpenHAB
             #   elsif other.respond_to?(:coerce) && (lhs, rhs = other.coerce(to_d))
             #     lhs * rhs
             #   else
-            #     raise TypeError, "#{other.class} can"t be coerced into #{self.class}"
+            #     raise TypeError, "#{other.class} can't be coerced into #{self.class}"
             #   end
             # end
             <<~RUBY, __FILE__, __LINE__ + 1
@@ -308,7 +311,7 @@ module OpenHAB
         def multiply_quantity(other)
           lhs = deunitize
           rhs = other.deunitize
-          # reverse the arguments if it's multiplication and the LHS isn"t a QuantityType
+          # reverse the arguments if it's multiplication and the LHS isn't a QuantityType
           lhs, rhs = rhs, lhs if lhs.is_a?(java.math.BigDecimal)
           # what a waste... using a QuantityType to multiply two dimensionless quantities
           # have to make sure lhs is still a QuantityType in order to return a new
