@@ -70,8 +70,13 @@ module OpenHAB
           return false if terminated? || cancelled?
 
           DSL::TimerManager.instance.delete(self)
-          @execution_time = nil
+          _cancel
           true
+        end
+
+        def _cancel
+          @execution_time = nil
+          self
         end
 
         def cancelled?
