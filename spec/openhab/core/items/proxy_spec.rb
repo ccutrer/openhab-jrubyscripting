@@ -47,5 +47,21 @@ RSpec.describe OpenHAB::Core::Items::Proxy do
     # but it now refers to the same underlying item
     expect(original.__getobj__).to be new_item.__getobj__
   end
+
+  describe "Comparisons" do
+    before do
+      items.build { switch_item "Switch2" }
+    end
+
+    it "can be done with ==" do
+      expect(Switch1 == Switch1).to be true # rubocop:disable Lint/BinaryOperatorWithIdenticalOperands
+      expect(Switch1 == Switch2).to be false
+    end
+
+    it "can be done with !=" do
+      expect(Switch1 != Switch2).to be true
+      expect(Switch1 != Switch1).to be false # rubocop:disable Lint/BinaryOperatorWithIdenticalOperands
+    end
+  end
 end
 # rubocop:enable RSpec/IdenticalEqualityAssertion
