@@ -11,10 +11,10 @@ module OpenHAB
 
         # @!visibility private
         def self.included(base)
-          base.send :alias_method, :plus_without_temporal, :+
-          base.send :alias_method, :+, :plus_with_temporal
-          base.send :alias_method, :minus_without_temporal, :-
-          base.send :alias_method, :-, :minus_with_temporal
+          base.send :alias_method, :time_plus_without_temporal, :+
+          base.send :alias_method, :+, :time_plus_with_temporal
+          base.send :alias_method, :time_minus_without_temporal, :-
+          base.send :alias_method, :-, :time_minus_with_temporal
         end
 
         #
@@ -26,10 +26,10 @@ module OpenHAB
         # @return [ZonedDateTime] If other is a {java.time.temporal.TemporalAmount TemporalAmount}
         # @return [Time] If other is a Numeric
         #
-        def plus_with_temporal(other)
+        def time_plus_with_temporal(other)
           return to_zoned_date_time + other if other.is_a?(java.time.temporal.TemporalAmount)
 
-          plus_without_temporal(other)
+          time_plus_without_temporal(other)
         end
 
         #
@@ -59,7 +59,7 @@ module OpenHAB
         # @return [Time] If other is a Numeric
         # @return [Float] If other is a Time
         #
-        def minus_with_temporal(other)
+        def time_minus_with_temporal(other)
           return to_zoned_date_time - other if other.is_a?(java.time.temporal.TemporalAmount)
 
           # Exclude subtracting against the same class
@@ -67,7 +67,7 @@ module OpenHAB
             return to_zoned_date_time - other.to_zoned_date_time
           end
 
-          minus_without_temporal(other)
+          time_minus_without_temporal(other)
         end
 
         # @return [LocalDate]
