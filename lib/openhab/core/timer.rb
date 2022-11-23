@@ -36,7 +36,6 @@ module OpenHAB
       attr_accessor :id
 
       # @!visibility private
-      # @!visibility private
       attr_reader :block
 
       #
@@ -119,12 +118,8 @@ module OpenHAB
       # @return [void]
       #
       def execute
-        last_execution_time = execution_time
-        DSL::ThreadLocal.thread_local(**@thread_locals) do
-          @block.call(self)
-        end
-        # don't remove ourselves if we were rescheduled in the block
-        DSL.timers.delete(self) if execution_time == last_execution_time
+        DSL.timers.delete(self)
+        DSL::ThreadLocal.thread_local(**@thread_locals) { @block.call(self) }
       end
 
       #

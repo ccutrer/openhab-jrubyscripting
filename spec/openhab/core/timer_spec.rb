@@ -155,6 +155,15 @@ RSpec.describe OpenHAB::Core::Timer do
         expect(timers).not_to include("id")
       end
 
+      it "removes the timer when finished" do
+        executed = false
+        after(0.1.seconds, id: "id") { executed = true }
+
+        time_travel_and_execute_timers(0.2.seconds)
+        expect(executed).to be true
+        expect(timers).not_to include("id")
+      end
+
       it "can reschedule a timer by id" do
         timer1 = after(5.seconds, id: "id") { nil }
         timer2 = timers.reschedule("id", 1.second)
