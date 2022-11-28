@@ -7,6 +7,7 @@ module OpenHAB
 
       # Extensions to Duration
       class Duration
+        include OpenHAB::CoreExt::Between
         # @!parse include TemporalAmount
 
         alias_method :to_i, :seconds

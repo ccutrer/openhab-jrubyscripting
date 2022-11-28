@@ -9,7 +9,18 @@ module OpenHAB
 
       # Extensions to Month
       class Month
+        include OpenHAB::CoreExt::Between
         # @!parse include Time
+
+        # @return [Month]
+        def +(other)
+          plus(other)
+        end
+
+        # @return [Month]
+        def -(other)
+          minus(other)
+        end
 
         #
         # Returns the next month

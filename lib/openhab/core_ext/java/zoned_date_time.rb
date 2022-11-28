@@ -10,6 +10,7 @@ module OpenHAB
       # Extensions to ZonedDateTime
       class ZonedDateTime
         include Time
+        include OpenHAB::CoreExt::Between
 
         class << self # rubocop:disable Lint/EmptyClass
           # @!attribute [r] now
@@ -91,11 +92,12 @@ module OpenHAB
           # compare instants, otherwise it will differ by timezone, which we don't want
           # (use eql? if you care about that)
           if other.respond_to?(:to_zoned_date_time)
-            return to_instant.compare_to(other.to_zoned_date_time(self).to_instant)
-          end
-          return nil unless (lhs, rhs = other.coerce(self))
+            to_instant.compare_to(other.to_zoned_date_time(self).to_instant)
+          elsif other.respond_to?(:coerce)
+            return nil unless (lhs, rhs = other.coerce(self))
 
-          lhs <=> rhs
+            lhs <=> rhs
+          end
         end
 
         #
