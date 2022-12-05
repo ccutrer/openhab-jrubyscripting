@@ -90,4 +90,16 @@ RSpec.describe OpenHAB::DSL::Rules::NameInference do
       expect(r.name).to eql "System Start Level reached 30 (states) or 40 (rules)"
     end
   end
+
+  context "with #on_load" do
+    it "generates a useful name" do
+      r = rules.build do
+        rule do
+          on_load
+          run { nil }
+        end
+      end
+      expect(r.name).to eql "Rule loaded"
+    end
+  end
 end

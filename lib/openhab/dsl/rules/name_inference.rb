@@ -64,6 +64,8 @@ module OpenHAB
               infer_rule_name_from_thing_trigger(trigger)
             when :on_start
               infer_rule_name_from_on_start_trigger(items)
+            when :on_load
+              "Rule loaded"
             end
           end
 

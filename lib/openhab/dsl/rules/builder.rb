@@ -999,6 +999,7 @@ module OpenHAB
 
           @on_load_id = SecureRandom.uuid
           attachments[@on_load_id] = attach
+          @ruby_triggers << [:on_load]
         end
 
         #
