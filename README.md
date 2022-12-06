@@ -5,6 +5,7 @@
 [![GitHub contributors](https://img.shields.io/github/contributors/ccutrer/openhab-jrubyscripting)](https://github.com/ccutrer/openhab-jrubyscripting/graphs/contributors)
 [![EPLv2 License](https://img.shields.io/badge/License-EPLv2-blue.svg)](https://www.eclipse.org/legal/epl-2.0/)
 
+
 The openHAB JRuby scripting helpers bring the power of the Ruby language to
 openHAB. Rather than being a pure pass-through to openHAB, they provide a
 Ruby-like experience when building automation rules within openHAB.
