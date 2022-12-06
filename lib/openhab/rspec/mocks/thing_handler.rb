@@ -45,8 +45,6 @@ module OpenHAB
       end
 
       class ThingHandlerFactory < org.openhab.core.thing.binding.BaseThingHandlerFactory
-        include Singleton
-
         class ComponentContext
           include org.osgi.service.component.ComponentContext
           include Singleton
@@ -57,13 +55,14 @@ module OpenHAB
         end
         private_constant :ComponentContext
 
-        def initialize
-          super
+        def initialize(thing_type_uids)
+          @thing_type_uids = thing_type_uids
+          super()
           activate(ComponentContext.instance)
         end
 
-        def supportsThingType(_type)
-          true
+        def supportsThingType(type)
+          @thing_type_uids.include?(type)
         end
 
         def createHandler(thing)

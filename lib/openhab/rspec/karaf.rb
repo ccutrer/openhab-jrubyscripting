@@ -431,6 +431,27 @@ module OpenHAB
               java.util.Hashtable.new(org.osgi.framework.Constants::SERVICE_RANKING => 1.to_java(:int))
             )
 
+            require_relative "mocks/thing_handler"
+
+            wait_for_service("org.openhab.core.service.ReadyService") do |rs|
+              known_thing_types = Set.new
+              filter = org.openhab.core.service.ReadyMarkerFilter.new
+                          .with_type("openhab.xmlThingTypes")
+
+              rs.register_tracker(org.openhab.core.service.ReadyService::ReadyTracker.impl do |method, _marker|
+                                    next unless method == :onReadyMarkerAdded
+
+                                    wait_for_service("org.openhab.core.thing.type.ThingTypeRegistry") do |ttr|
+                                      new_thing_types = ttr.thing_types.map(&:uid).map(&:to_s) - known_thing_types.to_a.map(&:to_s)
+                                      next if new_thing_types.empty?
+                                      puts("adding factory for types #{new_thing_types.sort.inspect}")
+                                      known_thing_types.merge(new_thing_types)
+                                      new_thing_types.map! { |type| org.openhab.core.thing.ThingTypeUID.new(type) }
+                                      add_thing_handler_factory(new_thing_types.to_set)                                      
+                                    end
+                                  end, filter)
+            end
+
             wait_for_service("org.openhab.core.thing.ThingManager") do |tm|
               tm.class.field_accessor :bundleResolver
 
@@ -440,13 +461,6 @@ module OpenHAB
               field = tm.class.java_class.declared_field :safeCaller
               field.accessible = true
               field.set(tm, Mocks::SafeCaller.instance)
-
-              require_relative "mocks/thing_handler"
-              thf = Mocks::ThingHandlerFactory.instance
-              bundle = org.osgi.framework.FrameworkUtil.get_bundle(org.openhab.core.thing.Thing)
-              Mocks::BundleResolver.instance.register_class(thf.class, bundle)
-              bundle.bundle_context.register_service(org.openhab.core.thing.binding.ThingHandlerFactory.java_class, thf,
-                                                     nil)
             end
           end
           if bundle_name == "org.openhab.core.automation"
@@ -752,6 +766,17 @@ module OpenHAB
         m.accessible = true
         sls.trackers.clear
         m.invoke(sls, config)
+      end
+
+      def add_thing_handler_factory(thing_type_uid)
+        thf = Mocks::ThingHandlerFactory.new(thing_type_uid)
+        bundle = org.osgi.framework.FrameworkUtil.get_bundle(org.openhab.core.thing.Thing)
+        Mocks::BundleResolver.instance.register_class(thf.class, bundle)
+        bundle.bundle_context.register_service(
+          org.openhab.core.thing.binding.ThingHandlerFactory.java_class,
+          thf,
+          nil
+        )
       end
 
       def minimize_installed_features
