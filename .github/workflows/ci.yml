@@ -10,171 +10,22 @@ env:
   RUBY_VERSION: 3.1.3
   GITHUB_TOKEN: ${{ github.token }}
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
-  rubocop:
+  build:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'ci skip')"
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
           bundler-cache: true
-      - name: RuboCop
-        run: bin/rubocop
-
-  cucumber-lint:
-    runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'ci skip')"
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ env.RUBY_VERSION }}
-          bundler-cache: true
-      - name: Cucumber Lint
-        run: bin/cuke_linter -p features/
-
-  yard-coverage:
-    runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'ci skip')"
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ env.RUBY_VERSION }}
-          bundler-cache: true
-      - name: Yard Coverage
-        run: |
-          bin/yardoc -c --no-cache --private --fail-on-warning
-          bin/yard stats -c --list-undoc
-          bin/yard stats -c | grep "100.00% documented"
-
-  openhab-matrix:
-    runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'ci skip')"
-    outputs:
-      openhab_matrix: |
-        ["3.3.0", "3.4.0-SNAPSHOT"]
-      java_matrix: |
-        ["11", "17"]
-      snapshot_date: |
-        ${{ steps.snapshot-date.outputs.SNAPSHOT_DATE }}
-    steps:
-      - name: Calculate Date for Cache Key
-        id: snapshot-date
-        run: |
-          echo SNAPSHOT_DATE=$(date -u +-%Y%m%d) >> $GITHUB_OUTPUT
-
-  openhab-setup:
-    needs: openhab-matrix
-    runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'ci skip')"
-    strategy:
-      matrix:
-        openhab_version: ${{ fromJson(needs.openhab-matrix.outputs.openhab_matrix) }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Cache openHAB setup
-        id: cache
-        uses: actions/cache@v3
-        with:
-          path: tmp/
-          key: openHAB-setup-${{ matrix.openhab_version }}${{ endsWith(matrix.openhab_version, 'SNAPSHOT') && needs.openhab-matrix.outputs.snapshot_date || '' }}
-      - uses: ruby/setup-ruby@v1
-        if: steps.cache.outputs.cache-hit != 'true'
-        with:
-          ruby-version: ${{ env.RUBY_VERSION }}
-          bundler-cache: true
-      - name: Setup openHAB
-        if: steps.cache.outputs.cache-hit != 'true'
-        env:
-          OPENHAB_VERSION: ${{ matrix.openhab_version }}
-        run: bin/rake openhab:setup
-
-  rspec:
-    needs: [openhab-matrix, openhab-setup]
-    runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'ci skip')"
-    strategy:
-      matrix:
-        openhab_version: ${{ fromJson(needs.openhab-matrix.outputs.openhab_matrix) }}
-        java_version:  ${{ fromJson(needs.openhab-matrix.outputs.java_matrix) }}
-        jruby_version: ["jruby-9.3.8.0", "jruby-9.4.0.0"]
-        exclude:
-          - openhab_version: 3.3.0
-            jruby_version: jruby-9.4.0.0
-          - openhab_version: 3.3.0
-            java_version: 17
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.jruby_version }}
-          bundler-cache: true
-      - uses: actions/setup-java@v3
-        with:
-          distribution: zulu
-          java-version: ${{ matrix.java_version }}
-          java-package: jre
-      - name: Restore openHAB setup
-        uses: actions/cache@v3
-        with:
-          path: tmp/
-          key: openHAB-setup-${{ matrix.openhab_version }}${{ endsWith(matrix.openhab_version, 'SNAPSHOT') && needs.openhab-matrix.outputs.snapshot_date || '' }}
-      - name: RSpec
-        run: bin/rspec --format progress --format html --out rspec.html
-        timeout-minutes: 6
-      - name: Upload openHAB Logs
-        uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: RSpec-logs-${{ matrix.openhab_version }}-${{ matrix.jruby_version }}
-          path: tmp/openhab/userdata/logs
-          retention-days: 2
-      - name: Upload RSpec results
-        uses: actions/upload-artifact@v3
-        if: success() || failure()
-        with:
-          name: RSpec-results-openHAB-${{ matrix.openhab_version }}-jruby-${{ matrix.jruby_version }}-java-#{{matrix.java_version}}
-          path: rspec.html
-
-  cucumber:
-    needs: [openhab-matrix, openhab-setup]
-    runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'ci skip')"
-    strategy:
-      matrix:
-        openhab_version: ${{ fromJson(needs.openhab-matrix.outputs.openhab_matrix) }}
-        java_version:  ${{ fromJson(needs.openhab-matrix.outputs.java_matrix) }}
-        exclude:
-          - openhab_version: 3.3.0
-            java_version: 17
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ env.RUBY_VERSION }}
-          bundler-cache: true
-      - uses: actions/setup-java@v3
-        with:
-          distribution: zulu
-          java-version: "11"
-          java-package: jre
-      - name: Restore openHAB setup
-        uses: actions/cache@v3
-        with:
-          path: tmp/
-          key: openHAB-setup-${{ matrix.openhab_version }}${{ endsWith(matrix.openhab_version, 'SNAPSHOT') && needs.openhab-matrix.outputs.snapshot_date || '' }}
-      - name: Cucumber
-        run: bin/rake features
-        timeout-minutes: 4
-      - name: Upload openHAB Logs
-        uses: actions/upload-artifact@v3
-        if: success() || failure()
-        with:
-          name: Cucumber-logs-openHAB-${{ matrix.openhab_version }}-java-#{{matrix.java_version}}
-          path: |
-            tmp/openhab/userdata/logs
-            tmp/karaf.log
-          retention-days: 2
+      - name: Determine Destination Dir
+        id: destination_dir
+        run: ruby -e 'ref_name = "v5.0.0.rc8"; ref_name = ref_name[1..-1].split(".")[0..1].join(".") if "tag" == "tag"; puts "DESTINATION_DIR=#{ref_name}"' >> $GITHUB_OUTPUT
+      - name: Output destination dir
+        run: echo ${{ steps.destination_dir.outputs.DESTINATION_DIR }}
