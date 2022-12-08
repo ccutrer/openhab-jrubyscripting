@@ -184,12 +184,14 @@ function navigationChange() {
 
 function enableToggles() {
   // show/hide nested classes on toggle click
-  $('.sidebar-links a.toggle').on('click', function(evt) {
+  $('.sidebar-links .sidebar-heading').on('click', function(evt) {
     evt.stopPropagation();
     evt.preventDefault();
-    $(this).parent().parent().toggleClass('collapsed');
-    $(this).toggleClass('down');
-    $(this).toggleClass('right');
+    var toCollapse = $(this).parent();
+    var icon = toCollapse.find('.arrow');
+    toCollapse.toggleClass('collapsed');
+    icon.toggleClass('down');
+    icon.toggleClass('right');
   });
 }
 
