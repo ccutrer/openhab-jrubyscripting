@@ -104,6 +104,18 @@ module OpenHAB
             "#{r}>"
           end
           alias_method :to_s, :inspect
+
+          # @return [true, false]
+          def eql?(other)
+            other.is_a?(Members) && other.group == group
+          end
+
+          # @return [true, false]
+          def ==(other)
+            return true if eql?(other)
+
+            to_a == other
+          end
         end
 
         # Override because we want to send them to the base item if possible
@@ -132,7 +144,7 @@ module OpenHAB
         # @see Enumerable
         #
         def all_members
-          getAllMembers.map { |m| Proxy.new(m) }
+          get_all_members.map { |m| Proxy.new(m) }
         end
 
         # give the base item type a chance to format commands

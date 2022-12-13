@@ -43,7 +43,7 @@ module OpenHAB
         #
         def items
           registry = OSGi.service("org.openhab.core.thing.link.ItemChannelLinkRegistry")
-          registry.get_linked_items(self).map { |i| Items::Proxy.new(i) }
+          registry.get_linked_items(self).map { |i| EntityLookup.capture_item(Items::Proxy.new(i)) }
         end
       end
     end

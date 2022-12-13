@@ -25,7 +25,7 @@ module OpenHAB
           #   @param name [String] The name for the rule.
           #   @param id [String] The ID for the rule.
           #   @yield The execution block for the rule.
-          #   @return [void]
+          #   @return [Core::Rules::Rule]
           #   @see BuilderDSL#$1
           def def_terse_rule(trigger)
             class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
@@ -34,8 +34,7 @@ module OpenHAB
                                                                               #
                 id ||= NameInference.infer_rule_id_from_block(block)          #   id ||= NameInference.infer_rule_id_from_block(block)
                 script = block.source rescue nil                              #   script = block.source rescue nil
-                caller_binding = block.binding                                #   caller_binding = block.binding
-                rule name, id: id, script: script, binding: caller_binding do #   rule name, id: id, script: script, binding: caller_binding do
+                rule name, id: id, script: script, binding: block.binding do  #   rule name, id: id, script: script, binding: block.binding do
                   #{trigger}(*args, **kwargs)                                 #     changed(*args, **kwargs)
                   run(&block)                                                 #     run(&block)
                 end                                                           #   end
@@ -57,6 +56,42 @@ module OpenHAB
         def_terse_rule(:thing_removed)
         def_terse_rule(:updated)
         def_terse_rule(:on_start)
+
+        module_function
+
+        #
+        # Create a rule that keeps the item up to date according to the given block
+        #
+        # @see Core::EntityLookup.capture_items See capture_items for caveats of how to access items in your block.
+        #
+        # @param [Item] item The item to keep up to date
+        # @param [String, nil] name The name for the rule
+        # @param [String, nil] id The id for the rule
+        # @yield Calculate the new value for the item
+        # @yieldreturn [State]
+        # @return [Core::Rules::Rule]
+        #
+        # @example
+        #  calculated_item(Furnace_DeltaTemp) { FurnaceSupplyAir_Temp.state - FurnaceReturnAir_Temp.state }
+        #
+        def calculated_item(item, name: nil, id: nil, &block)
+          raise ArgumentError, "Block is required" unless block
+
+          items = Core::EntityLookup.capture_items do
+            item.ensure.update(yield)
+          end
+
+          name ||= "Calculate the value of #{item}"
+          id ||= NameInference.infer_rule_id_from_block(block)
+          script = block.source rescue nil # rubocop:disable Style/RescueModifier
+
+          rule name, id: id, script: script, binding: block.binding do
+            changed(*items)
+            run do
+              item.ensure.update(yield)
+            end
+          end
+        end
       end
     end
   end
