@@ -108,7 +108,9 @@ module OpenHAB
         def lookup_entity(name, create_dummy_items: false)
           # make sure we have a nil return
           create_dummy_items = nil if create_dummy_items == false
-          lookup_item(name) || lookup_thing_const(name) || (create_dummy_items && Items::Proxy.new(name.to_sym))
+          lookup_item(name) ||
+            lookup_thing_const(name) ||
+            (create_dummy_items && capture_item(Items::Proxy.new(name.to_sym)))
         end
 
         #
@@ -166,8 +168,44 @@ module OpenHAB
         def lookup_item(name)
           logger.trace("Looking up item '#{name}'")
           name = name.to_s if name.is_a?(Symbol)
-          item = $ir.get(name)
-          Items::Proxy.new(item) unless item.nil?
+          $ir.get(name)&.then { |item| capture_item(Items::Proxy.new(item)) }
+        end
+
+        #
+        # Captures all items accessed inside the block.
+        #
+        # Useful for knowing what items were accessed in order to set up
+        # triggers if those items change again.
+        #
+        # There are several caveats:
+        # - Items found by filtering on `items` will not be found.
+        # - {GroupItem GroupItems} will always be captured as their members.
+        # - Items found before the block, and then simply accessed inside the
+        #   block, will not be captured.
+        #
+        # @yield
+        # @return [Array<Item, GroupItem::Members>]
+        #
+        def capture_items
+          raise ArgumentError, "Capture already in progress" if Thread.current[:openhab_item_capture]
+
+          Thread.current[:openhab_captured_items] = captured_items = Set.new
+          yield
+          captured_items.to_a
+        ensure
+          Thread.current[:openhab_captured_items] = nil
+        end
+
+        # @param [Item, GroupItem::Members] item
+        # @return [Item, GroupItem::Members] item
+        # @!visibility private
+        def capture_item(item)
+          if (captured_items = Thread.current[:openhab_captured_items])
+            captured_item = item
+            captured_item = captured_item.members if item.is_a?(GroupItem)
+            captured_items << captured_item
+          end
+          item
         end
       end
     end

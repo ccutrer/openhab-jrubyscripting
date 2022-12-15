@@ -127,6 +127,7 @@ module OpenHAB
               end
               Core::Things::Links::Provider.link(item, channel, config)
             end
+            DSL.calculated_item(item, &builder.state) if builder.state.is_a?(Proc)
             item
           end
         end
@@ -176,8 +177,13 @@ module OpenHAB
         attr_accessor :channels
         # @return [Core::Items::Metadata::NamespaceHash]
         attr_reader :metadata
+        #
         # Initial state
-        # @return [Core::Types::State]
+        #
+        # If a Proc is given, {Rules::Terse.calculated_item calculated_item}
+        # will be used to keep the item's state up to date.
+        #
+        # @return [Core::Types::State, Proc]
         attr_accessor :state
 
         class << self
@@ -435,7 +441,7 @@ module OpenHAB
           item.metadata["autoupdate"] = autoupdate.to_s unless autoupdate.nil?
           item.metadata["expire"] = expire if expire
           item.metadata["stateDescription"] = { "pattern" => format } if format
-          item.state = item.format_update(state) unless state.nil?
+          item.state = item.format_update(state) if !state.nil? && !state.is_a?(Proc)
           item
         end
 

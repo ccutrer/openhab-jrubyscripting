@@ -192,6 +192,18 @@ RSpec.describe OpenHAB::DSL::Items::Builder do
     expect(DateTimeItem1.state).to eq Time.parse("1970-01-01T00:00:00+00:00")
   end
 
+  it "can use a Proc as the state" do
+    items.build do
+      number_item FurnaceSupplyAir_Temp, state: 80
+      number_item FurnaceReturnAir_Temp, state: 70
+      number_item Furnace_DeltaTemp, state: -> { FurnaceSupplyAir_Temp.state - FurnaceReturnAir_Temp.state }
+    end
+
+    expect(Furnace_DeltaTemp.state).to eq 10
+    FurnaceReturnAir_Temp.update(71)
+    expect(Furnace_DeltaTemp.state).to eq 9
+  end
+
   describe "entity lookup" do
     it "can reference a group item directly" do
       items.build do
