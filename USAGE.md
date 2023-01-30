@@ -948,7 +948,7 @@ I.e. comparing a time to a month, the month will be assumed to be in the same ye
 ```ruby
 # Get current date/time
 now = ZonedDateTime.now
-one_hour_from_now = ZonedDateTime.now + 30.minutes
+one_hour_from_now = ZonedDateTime.now + 60.minutes
 one_hour_from_now = 1.hour.from_now # or use the simpler helper method that also returns a ZonedDateTime
 # Or use Ruby time
 ruby_now = Time.now
@@ -979,9 +979,7 @@ end
 # Explicit conversions
 ZonedDateTime.now.to_time
 Time.now.to_zoned_date_time
-```
 
-```ruby
 # You can parse string as time
 wake_up_time = LocalTime.parse("6:00 am")
 
@@ -994,16 +992,12 @@ end
 if Time.now >= wake_up_time
   Wake_Up_Alarm.on
 end
-```
 
-```ruby
 # Get today's start of the day (midnight)
 start_of_day = ZonedDateTime.now.with(LocalTime::MIDNIGHT)
 # or
 start_of_day = LocalTime::MIDNIGHT.to_zoned_date_time
-```
 
-```ruby
 # Comparing ZonedDateTime against LocalTime with `<`
 max = Solar_Power.maximum_since(24.hours.ago)
 if max.timestamp < LocalTime::NOON
@@ -1031,9 +1025,7 @@ elapsed_time = ZonedDateTime.now - Motion_Sensor.last_update
 Motion_Sensor.last_update < Light_Item.last_update - 10.minutes
 # is the same as:
 Motion_Sensor.last_update.before?(Light_Item.last_update.minus_minutes(10))
-```
 
-```ruby
 # Getting Epoch Second
 Time.now.to_i
 ZonedDateTime.now.to_i
