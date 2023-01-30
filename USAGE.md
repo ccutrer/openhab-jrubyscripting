@@ -1487,7 +1487,7 @@ Take care when doing this as the the items/groups are processed when the rules f
 
 ```ruby
 rule "Log whenever a Virtual Switch Changes" do
-  items.select { |item| item.is_a?(Switch) }
+  items.grep(SwitchItem)
        .select { |item| item.label&.include?("Virtual") }
        .each do |item|
          changed item
@@ -1500,7 +1500,7 @@ end
 This rule is effectively the same:
 
 ```ruby
-virtual_switches = items.select { |item| item.is_a?(Switch) }
+virtual_switches = items.grep(SwitchItem)
                         .select { |item| item.label&.include?("Virtual") }
 
 rule "Log whenever a Virtual Switch Changes 2" do
@@ -1512,7 +1512,7 @@ end
 This will accomplish the same thing, but create a new rule for each virtual switch:
 
 ```ruby
-virtual_switches = items.select { |item| item.is_a?(Switch) }
+virtual_switches = items.grep(SwitchItem)
                         .select { |item| item.label&.include?("Virtual") }
 
 virtual_switches.each do |switch|
