@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Error 404 :(</title>
+
+    <script>
+        window.onload = function () {
+            const destination = window.location.href;
+            if (window.location.href.includes("ccutrer.github.io/openhab-jrubyscripting")) {
+                const redirectLocation = window.location.href.replace(
+                    "ccutrer.github.io/openhab-jrubyscripting",
+                    "openhab.github.io/openhab-jruby"
+                );
+                document.getElementById("body").innerHTML = "This gem has moved to the openHAB organization.<br/><br/>Redirecting to " + redirectLocation + " ...";
+                window.location.href = redirectLocation;
+            }
+        }
+    </script>
+</head>
+
+<body id="body" style="text-align: center">
+    Page not found
+</body>
+
+</html>
