@@ -59,8 +59,7 @@ module OpenHAB
         #
         def all_groups
           result = []
-          new_groups = Set.new
-          new_groups.replace(groups)
+          new_groups = Set.new(groups)
 
           until new_groups.empty?
             result.concat(new_groups.to_a)
