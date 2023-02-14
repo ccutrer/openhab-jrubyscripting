@@ -92,12 +92,7 @@ module OpenHAB
       #
       def scriptUnloaded # rubocop:disable Naming/MethodName method name dictated by openHAB
         logger.trace("Script unloaded")
-        ScriptHandlingCallbacks.script_unloaded_hooks
-                               .to_a
-                               .sort_by(&:first)
-                               .map(&:last)
-                               .flatten
-                               .each do |hook|
+        ScriptHandlingCallbacks.script_unloaded_hooks.sort_by(&:first).flat_map(&:last).each do |hook|
           hook.call
         rescue => e
           logger.error("Failed to call script_unloaded hook #{hook}: #{e}")
